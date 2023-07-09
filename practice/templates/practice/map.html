@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Kakao Map Example</title>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=4c83494be8cda07e7452334a8cdcc581"></script>
+</head>
+<body>
+    <!-- 지도를 표시할 영역 -->
+    <div id="map" style="width:500px;height:400px;"></div>
+
+    <div id="marker_lat" style="display: none">
+        {% for mark in markers %}
+            {{mark.latitude}},
+        {% endfor %}
+    </div>
+	<div id="marker_lng" style="display: none">
+		{% for mark in markers %}
+			{{mark.longitude}},
+		{% endfor %}
+	</div>
+
+    <form action="{% url 'save_marker' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="latitude" id="latitude">
+        <input type="hidden" name="longitude" id="longitude">
+        <input type="text" name="message" placeholder="메시지 입력">
+        <button type="submit">저장</button>
+    </form>
+
+    <script>
+        var options = {
+            center: new kakao.maps.LatLng(33.450701, 126.570667),
+            level: 2
+        };
+
+        var map = new kakao.maps.Map(document.getElementById('map'), options);
+
+        var list_lat = document.getElementById("marker_lat").innerText.split(',');
+        var list_lng = document.getElementById("marker_lng").innerText.split(',');
+        var markers = new Array();
+
+        for(var idx=0; idx<list_lat.length; idx++){
+    	    var data_lat = list_lat[idx];
+    	    var data_lng = list_lng[idx];
+    	    markers.push(new kakao.maps.LatLng(data_lat.trim(), data_lng.trim()));
+        }
+
+        for(var idx=0; idx<markers.length; idx++){
+            var marker = new kakao.maps.Marker({
+                position: markers[idx]
+            });
+            marker.setMap(map);
+        }
+
+        kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+            var latlng = mouseEvent.latLng;
+            var latitude = latlng.getLat();
+            var longitude = latlng.getLng();
+
+            // 위도, 경도 값을 입력 폼에 설정
+            document.getElementById('latitude').value = latitude;
+            document.getElementById('longitude').value = longitude;
+
+            // 마커 추가
+            var marker = new kakao.maps.Marker({
+                position: latlng
+            });
+            marker.setMap(map);
+        });
+    </script>
+</body>
+</html>
